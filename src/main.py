@@ -1,38 +1,33 @@
-"""Эмулятор оболочки UNIX: точка входа и цикл REPL."""
+"""Эмулятор оболочки UNIX: точка входа."""
 
-from cmd_parser import parse_line
-from commands import execute
+import sys
+
+from config import parse_args, print_debug
+from shell import run_repl, run_script
 
 VFS_NAME = "vfs"
+EXIT_ERROR = 1
 
 
-def make_prompt(vfs_name):
-    """Возвращает приглашение к вводу с именем VFS."""
-    return f"{vfs_name}$ "
+def run_startup_script(path):
+    """Выполняет стартовый скрипт.
 
-
-def run_repl(vfs_name):
-    """Читает команды пользователя, пока не будет введён exit."""
-    while True:
-        try:
-            line = input(make_prompt(vfs_name))
-        except EOFError:
-            print()
-            break
-        try:
-            words = parse_line(line)
-        except ValueError as error:
-            print(f"Ошибка разбора: {error}")
-            continue
-        if not words:
-            continue
-        if words[0] == "exit":
-            break
-        execute(words)
+    Возвращает True, если после скрипта нужно продолжить работу.
+    Если файл прочитать нельзя, завершает программу с ошибкой.
+    """
+    try:
+        return run_script(path, VFS_NAME)
+    except (OSError, UnicodeDecodeError) as error:
+        print(f"Ошибка чтения скрипта: {error}", file=sys.stderr)
+        sys.exit(EXIT_ERROR)
 
 
 def main():
     """Точка входа приложения."""
+    args = parse_args()
+    print_debug(args)
+    if args.script and not run_startup_script(args.script):
+        return
     run_repl(VFS_NAME)
 
 
