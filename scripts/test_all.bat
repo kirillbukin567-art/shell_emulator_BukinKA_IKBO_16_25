@@ -7,7 +7,7 @@ echo exit | py src\main.py
 
 echo.
 echo === Test 2: --vfs and --script together ===
-py src\main.py --vfs data\vfs --script scripts\startup_basic.emu
+py src\main.py --vfs data\minimal.b64 --script scripts\startup_basic.emu
 
 echo.
 echo === Test 3: --help ===

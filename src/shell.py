@@ -11,7 +11,7 @@ def make_prompt(vfs_name):
     return f"{vfs_name}$ "
 
 
-def handle_line(line):
+def handle_line(session, line):
     """Выполняет одну строку. Возвращает False, если нужно выйти."""
     try:
         words = parse_line(line)
@@ -22,7 +22,7 @@ def handle_line(line):
         return True
     if words[0] == "exit":
         return False
-    execute(words)
+    execute(session, words)
     return True
 
 
@@ -32,7 +32,7 @@ def is_skippable(line):
     return not stripped or stripped.startswith(COMMENT_PREFIX)
 
 
-def run_script(path, vfs_name):
+def run_script(path, session):
     """Выполняет команды из файла, показывая ввод и вывод как диалог.
 
     Пустые строки и комментарии пропускаются, ошибочные строки
@@ -44,19 +44,19 @@ def run_script(path, vfs_name):
             line = raw_line.rstrip("\r\n")
             if is_skippable(line):
                 continue
-            print(f"{make_prompt(vfs_name)}{line}")
-            if not handle_line(line):
+            print(f"{make_prompt(session.vfs.name)}{line}")
+            if not handle_line(session, line):
                 return False
     return True
 
 
-def run_repl(vfs_name):
+def run_repl(session):
     """Читает команды пользователя, пока не будет введён exit."""
     while True:
         try:
-            line = input(make_prompt(vfs_name))
+            line = input(make_prompt(session.vfs.name))
         except EOFError:
             print()
             break
-        if not handle_line(line):
+        if not handle_line(session, line):
             break
