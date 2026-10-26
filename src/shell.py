@@ -6,9 +6,9 @@ from commands import execute
 COMMENT_PREFIX = "#"
 
 
-def make_prompt(vfs_name):
-    """Возвращает приглашение к вводу с именем VFS."""
-    return f"{vfs_name}$ "
+def make_prompt(session):
+    """Возвращает приглашение: имя VFS и текущий каталог."""
+    return f"{session.vfs.name}:/{session.cwd}$ "
 
 
 def handle_line(session, line):
@@ -44,7 +44,7 @@ def run_script(path, session):
             line = raw_line.rstrip("\r\n")
             if is_skippable(line):
                 continue
-            print(f"{make_prompt(session.vfs.name)}{line}")
+            print(f"{make_prompt(session)}{line}")
             if not handle_line(session, line):
                 return False
     return True
@@ -54,7 +54,7 @@ def run_repl(session):
     """Читает команды пользователя, пока не будет введён exit."""
     while True:
         try:
-            line = input(make_prompt(session.vfs.name))
+            line = input(make_prompt(session))
         except EOFError:
             print()
             break

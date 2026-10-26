@@ -7,7 +7,7 @@ import tempfile
 import unittest
 import zipfile
 
-from vfs import VfsError, build_vfs, default_vfs, load_vfs
+from vfs import VfsError, build_vfs, default_vfs, load_vfs, resolve
 
 
 def make_zip(entries):
@@ -88,6 +88,71 @@ class LoadVfsTest(unittest.TestCase):
         path = self.write_file(".b64", b"!!! not base64")
         with self.assertRaises(VfsError):
             load_vfs(path)
+
+
+class ResolveTest(unittest.TestCase):
+    """Проверки функции resolve."""
+
+    def test_relative_path(self):
+        """Относительный путь считается от текущего каталога."""
+        self.assertEqual(resolve("home/user", "docs"), "home/user/docs")
+
+    def test_absolute_path(self):
+        """Абсолютный путь не зависит от текущего каталога."""
+        self.assertEqual(resolve("home/user", "/etc"), "etc")
+
+    def test_dots(self):
+        """Части . и .. обрабатываются."""
+        self.assertEqual(resolve("a/b", "../c/./d"), "a/c/d")
+
+    def test_above_root(self):
+        """Выше корня подняться нельзя."""
+        self.assertEqual(resolve("", "../.."), "")
+
+    def test_root(self):
+        """Путь / ведёт в корень."""
+        self.assertEqual(resolve("a", "/"), "")
+
+    def test_repeated_slashes(self):
+        """Повторные и конечные слеши игнорируются."""
+        self.assertEqual(resolve("", "a//b/"), "a/b")
+
+
+class VfsQueriesTest(unittest.TestCase):
+    """Проверки методов Vfs."""
+
+    def setUp(self):
+        """Создаёт небольшую VFS."""
+        entries = {"a/b/c.txt": b"x", "a/d.txt": b"y", "e.txt": b"z"}
+        self.vfs = build_vfs("t", entries)
+
+    def test_is_dir(self):
+        """Корень и вложенные каталоги являются каталогами."""
+        self.assertTrue(self.vfs.is_dir(""))
+        self.assertTrue(self.vfs.is_dir("a/b"))
+        self.assertFalse(self.vfs.is_dir("e.txt"))
+
+    def test_is_file(self):
+        """Файлы определяются по словарю файлов."""
+        self.assertTrue(self.vfs.is_file("a/d.txt"))
+        self.assertFalse(self.vfs.is_file("a"))
+
+    def test_children_of_root(self):
+        """У корня только прямые потомки."""
+        self.assertEqual(self.vfs.children(""), ["a", "e.txt"])
+
+    def test_children_of_directory(self):
+        """У каталога a два прямых потомка."""
+        self.assertEqual(self.vfs.children("a"), ["b", "d.txt"])
+
+    def test_descendants_of_directory(self):
+        """Потомки включают вложенные уровни."""
+        expected = ["a/b", "a/b/c.txt", "a/d.txt"]
+        self.assertEqual(self.vfs.descendants("a"), expected)
+
+    def test_descendants_of_root(self):
+        """У корня потомками являются все элементы."""
+        self.assertEqual(len(self.vfs.descendants("")), 5)
 
 
 if __name__ == "__main__":

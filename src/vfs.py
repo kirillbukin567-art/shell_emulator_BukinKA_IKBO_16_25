@@ -7,6 +7,7 @@ import zipfile
 
 DEFAULT_NAME = "vfs"
 ZIP_MAGIC = b"PK"
+NO_SUCH = "Нет такого файла или каталога"
 
 DEFAULT_ENTRIES = {
     "readme.txt": b"Default VFS\n",
@@ -19,6 +20,11 @@ class VfsError(Exception):
     """Ошибка загрузки или использования VFS."""
 
 
+def dir_prefix(path):
+    """Возвращает префикс путей внутри каталога ('' для корня)."""
+    return f"{path}/" if path else ""
+
+
 class Vfs:
     """Виртуальная файловая система: каталоги и файлы в памяти."""
 
@@ -27,6 +33,59 @@ class Vfs:
         self.name = name
         self.dirs = dirs
         self.files = files
+
+    def all_paths(self):
+        """Возвращает множество путей всех каталогов и файлов."""
+        return self.dirs | set(self.files)
+
+    def is_dir(self, path):
+        """Истинно, если путь — каталог (корень — пустой путь)."""
+        return path == "" or path in self.dirs
+
+    def is_file(self, path):
+        """Истинно, если путь — файл."""
+        return path in self.files
+
+    def children(self, path):
+        """Возвращает отсортированные имена прямых потомков каталога."""
+        prefix = dir_prefix(path)
+        names = set()
+        for item in self.all_paths():
+            if item.startswith(prefix):
+                names.add(item[len(prefix):].split("/")[0])
+        return sorted(names)
+
+    def descendants(self, path):
+        """Возвращает отсортированные пути всех вложенных элементов."""
+        prefix = dir_prefix(path)
+        items = self.all_paths()
+        return sorted(item for item in items if item.startswith(prefix))
+
+
+def split_path(path):
+    """Делит путь на непустые части."""
+    return [part for part in path.split("/") if part]
+
+
+def resolve(cwd, path):
+    """Приводит путь (абсолютный или относительный) к пути в VFS.
+
+    Обрабатывает '.', '..' и повторные слеши. Выше корня подняться
+    нельзя. Результат без слешей по краям, '' означает корень.
+    """
+    parts = [] if path.startswith("/") else split_path(cwd)
+    for part in split_path(path):
+        if part == "..":
+            if parts:
+                parts.pop()
+        elif part != ".":
+            parts.append(part)
+    return "/".join(parts)
+
+
+def join_path(base, name):
+    """Склеивает путь каталога и имя элемента."""
+    return f"{base}/{name}" if base else name
 
 
 def parent_dirs(path):

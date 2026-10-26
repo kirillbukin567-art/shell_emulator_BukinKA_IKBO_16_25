@@ -1,0 +1,73 @@
+# Стартовый скрипт этапа 4: команды ls, cd, tac, tail, find
+# Запускать с VFS data\deep.b64
+
+# ls: корень, подробный вывод, скрытые файлы, несколько путей, файл
+ls
+ls -l
+ls home/user
+ls -a home/user
+ls -la home/user
+ls etc var
+ls home/user/docs/notes.txt
+
+# cd: относительный и абсолютный путь, .., без аргументов
+cd home/user
+ls
+cd docs/work
+ls -l
+cd ../..
+ls
+cd /var/log
+ls
+cd
+ls
+
+# tac: один файл и несколько файлов
+tac home/user/docs/work/todo.txt
+tac etc/app.conf home/user/docs/notes.txt
+
+# tail: по умолчанию 10 строк, с -n, несколько файлов
+tail var/log/boot.log
+tail -n 3 var/log/boot.log
+tail -n 0 var/log/boot.log
+tail -n 1 etc/app.conf home/user/docs/notes.txt
+
+# find: всё подряд, по имени, по типу, комбинация, относительный путь
+find etc
+find home -name *.txt
+find home -type d
+find / -name *.log -type f
+cd home/user
+find
+find docs -name *.txt
+cd /
+
+# Ошибки cd
+cd нет_такого
+cd etc/app.conf
+cd etc var
+
+# Ошибки ls
+ls -z
+ls нет_такого
+
+# Ошибки tac
+tac
+tac нет_такого
+tac home
+tac home/user/pics/icon.bin
+
+# Ошибки tail
+tail
+tail -n x etc/app.conf
+tail -n
+tail -n 3
+tail -q etc/app.conf
+
+# Ошибки find
+find нет_такого
+find home -type x
+find home -name
+find home -foo bar
+
+exit

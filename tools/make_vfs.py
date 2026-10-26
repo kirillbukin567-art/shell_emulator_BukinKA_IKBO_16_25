@@ -10,6 +10,7 @@ OUTPUT_DIR = os.path.join(
 )
 FIXED_DATE = (2026, 1, 1, 0, 0, 0)
 BROKEN_TEXT = "aGVsbG8=\n"
+BOOT_LOG = "".join(f"boot step {n}: ok\n" for n in range(1, 13))
 
 VARIANTS = {
     "minimal": {
@@ -29,7 +30,7 @@ VARIANTS = {
         "home/user/docs/notes.txt": "Deep notes\n",
         "home/user/pics/icon.bin": bytes(range(16)),
         "home/user/.profile": "export EDITOR=vi\n",
-        "var/log/boot.log": "boot ok\n",
+        "var/log/boot.log": BOOT_LOG,
         "tmp/": None,
     },
 }
