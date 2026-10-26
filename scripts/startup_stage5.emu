@@ -1,0 +1,68 @@
+# Стартовый скрипт этапа 5: команды mkdir и vfs-load
+# Запускать с минимальной VFS: --vfs data\minimal.b64
+
+# Исходная VFS
+vfs-info
+
+# mkdir: один каталог, несколько каталогов, относительные и абсолютные пути
+mkdir work
+mkdir a b
+ls
+cd work
+mkdir sub
+mkdir /top
+ls
+cd /
+ls
+
+# mkdir -p: цепочка каталогов, повторный вызов не выдаёт ошибку
+mkdir -p x/y/z
+find x
+mkdir -p x/y/z
+mkdir -p /p/q
+ls
+
+# Изменения только в памяти: новые каталоги видны в vfs-info
+vfs-info
+
+# vfs-load: загрузка другой VFS с диска (приглашение меняется)
+vfs-load data/deep.b64
+ls
+mkdir home/user/new
+ls home/user
+cd home/user/new
+
+# vfs-load сбрасывает текущий каталог, изменения предыдущей VFS теряются
+vfs-load data/several_files.b64
+ls
+mkdir docs
+ls -l
+vfs-load data/several_files.b64
+ls
+
+# vfs-init тоже возвращает VFS без изменений
+mkdir tmp1
+vfs-init
+ls
+mkdir -p tmp2/inner
+find
+vfs-init
+
+# Ошибки mkdir
+mkdir
+mkdir -z dir
+mkdir docs
+mkdir readme.txt
+mkdir /
+mkdir nope/child
+mkdir readme.txt/child
+mkdir -p readme.txt/child
+mkdir -p docs
+
+# Ошибки vfs-load: текущая VFS при ошибке не меняется
+vfs-load
+vfs-load a b
+vfs-load data/missing.b64
+vfs-load data/broken.b64
+vfs-info
+exit

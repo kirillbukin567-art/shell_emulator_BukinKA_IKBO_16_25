@@ -8,6 +8,8 @@ import zipfile
 DEFAULT_NAME = "vfs"
 ZIP_MAGIC = b"PK"
 NO_SUCH = "Нет такого файла или каталога"
+NOT_A_DIR = "Не является каталогом"
+EXISTS = "Файл существует"
 
 DEFAULT_ENTRIES = {
     "readme.txt": b"Default VFS\n",
@@ -61,6 +63,12 @@ class Vfs:
         items = self.all_paths()
         return sorted(item for item in items if item.startswith(prefix))
 
+    def add_dir(self, path, with_parents=False):
+        """Добавляет каталог в память; при with_parents и его родителей."""
+        if with_parents:
+            self.dirs.update(parent_dirs(path))
+        self.dirs.add(path)
+
 
 def split_path(path):
     """Делит путь на непустые части."""
@@ -86,6 +94,11 @@ def resolve(cwd, path):
 def join_path(base, name):
     """Склеивает путь каталога и имя элемента."""
     return f"{base}/{name}" if base else name
+
+
+def parent_of(path):
+    """Возвращает путь родительского каталога ('' для корня)."""
+    return path.rpartition("/")[0]
 
 
 def parent_dirs(path):

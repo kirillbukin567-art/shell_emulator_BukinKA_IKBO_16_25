@@ -21,10 +21,23 @@ def expand_variables(text):
     return VAR_PATTERN.sub(lambda m: _lookup_variable(m), text)
 
 
+def split_words(line):
+    """Делит строку на слова с учётом кавычек.
+
+    Обратная косая черта не считается символом экранирования, поэтому
+    пути Windows с обратными косыми чертами сохраняются как есть.
+    """
+    lexer = shlex.shlex(line, posix=True)
+    lexer.whitespace_split = True
+    lexer.commenters = ""
+    lexer.escape = ""
+    return list(lexer)
+
+
 def parse_line(line):
     """Разбивает строку на слова и раскрывает переменные в каждом.
 
     Бросает ValueError, если в строке не закрыта кавычка.
     """
-    words = shlex.split(line)
+    words = split_words(line)
     return [expand_variables(word) for word in words]

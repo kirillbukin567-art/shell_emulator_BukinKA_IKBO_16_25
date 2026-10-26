@@ -35,6 +35,24 @@ class ParseLineTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             parse_line('cd "abc')
 
+    def test_backslashes_are_kept(self):
+        """Обратные косые черты сохраняются (пути Windows)."""
+        self.assertEqual(
+            parse_line("vfs-load data\\deep.b64"),
+            ["vfs-load", "data\\deep.b64"],
+        )
+
+    def test_backslashes_inside_quotes(self):
+        """В кавычках обратные косые черты тоже сохраняются."""
+        self.assertEqual(
+            parse_line('vfs-load "C:\\my data\\a.b64"'),
+            ["vfs-load", "C:\\my data\\a.b64"],
+        )
+
+    def test_hash_is_not_a_comment(self):
+        """Символ # внутри строки не считается комментарием."""
+        self.assertEqual(parse_line("ls a#b"), ["ls", "a#b"])
+
 
 if __name__ == "__main__":
     unittest.main()

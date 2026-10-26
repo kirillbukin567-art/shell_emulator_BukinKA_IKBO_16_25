@@ -1,9 +1,12 @@
 """Реестр команд эмулятора."""
 
+from edit_commands import cmd_mkdir
 from file_commands import cmd_tac, cmd_tail
 from find_command import cmd_find
 from nav_commands import cmd_cd, cmd_ls
-from vfs import default_vfs
+from vfs import VfsError, default_vfs, load_vfs
+
+VFS_LOAD_ARGS = 1
 
 
 def cmd_vfs_init(session, args):
@@ -15,6 +18,22 @@ def cmd_vfs_init(session, args):
     session.vfs_path = None
     session.cwd = ""
     print("vfs-init: загружена VFS по умолчанию")
+
+
+def cmd_vfs_load(session, args):
+    """Загружает новую VFS из файла на диске: vfs-load путь."""
+    if len(args) != VFS_LOAD_ARGS:
+        print("vfs-load: нужен один аргумент — путь к файлу VFS")
+        return
+    try:
+        vfs = load_vfs(args[0])
+    except VfsError as error:
+        print(f"vfs-load: {args[0]}: {error}")
+        return
+    session.vfs = vfs
+    session.vfs_path = args[0]
+    session.cwd = ""
+    print(f"vfs-load: загружена VFS «{vfs.name}»")
 
 
 def cmd_vfs_info(session, args):
@@ -35,7 +54,9 @@ COMMANDS = {
     "tac": cmd_tac,
     "tail": cmd_tail,
     "find": cmd_find,
+    "mkdir": cmd_mkdir,
     "vfs-init": cmd_vfs_init,
+    "vfs-load": cmd_vfs_load,
     "vfs-info": cmd_vfs_info,
 }
 
